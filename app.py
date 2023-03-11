@@ -55,6 +55,13 @@ class Client(discord.Client):
             await message.reply('pong!', mention_author=True)
         elif message.content.__contains__(f'<@{self.user.id}'):
 
+            if len(message.content) > 1000:
+                await message.reply("""
+                                    Sorry, I don't answer messages longer
+                                    than 1000 characters!
+                                    """,)
+                return
+
             response = ''
             prepared_message = f'{message.author}:' + str(message.content).strip()
 
