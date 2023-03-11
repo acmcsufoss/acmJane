@@ -22,6 +22,7 @@ def generate_reply(message: str) -> str:
         OpenAI chat model response
     """
 
+    # Generate response
     response = openai.ChatCompletion.create(
         model='gpt-3.5-turbo',
         messages=[
@@ -30,8 +31,7 @@ def generate_reply(message: str) -> str:
         ]
     )
 
-    reply = response['choices'][0]['message']['content']
-    return reply
+    return response
 
 
 class Client(discord.Client):
@@ -46,9 +46,11 @@ class Client(discord.Client):
 
             response = ''
 
+            # Cache message if not cached
             if message not in cached_messages:
                 response = generate_reply(message.content)
 
+                # Check if cache is full and clear
                 if len(cached_messages.keys()) > 100:
                     cached_messages.clear()
                     print('[LOG] Clearing cache')
@@ -56,6 +58,8 @@ class Client(discord.Client):
                 cached_messages[message] = response
             else:
                 response = cached_messages.get(message)
+
+            reply = response['choices'][0]['message']['content']
 
             await message.reply(response, mention_author=True)
 
