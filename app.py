@@ -1,13 +1,26 @@
 import os
 from discord.message import Message
-
 from dotenv import load_dotenv
 import discord
+import openai
 
 # load from .env
 load_dotenv()
 token = os.getenv("DISCORD_TOKEN")
+openai.api_key = os.getenv("OPENAI_TOKEN")
 
+
+def generate_reply(message: str) -> str:
+    response = openai.ChatCompletion.create(
+        model='gpt-3.5-turbo',
+        messages=[
+            {'role': 'system', 'content': "You're Jane; a helpful assistant."},
+            {'role': 'user', 'content': message}
+        ]
+    )
+
+    reply = response['choices'][0]['message']['content']
+    return reply
 
 class Client(discord.Client):
     async def on_ready(self: discord.Client):
@@ -17,6 +30,9 @@ class Client(discord.Client):
     async def on_message(self, message: discord.Message):
         if message.content == f'<@{self.user.id}>':
             await message.reply('pong!', mention_author=True)
+        elif message.content.__contains__(f'<@{self.user.id}'):
+            response = generate_reply(message.content)
+            await message.reply(response, mention_author=True)
 
 
 intents = discord.Intents.default()
