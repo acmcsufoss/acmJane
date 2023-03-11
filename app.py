@@ -11,6 +11,17 @@ openai.api_key = os.getenv("OPENAI_TOKEN")
 # cache map
 cached_messages = dict()
 
+# initial prompt
+initial_prompt = """
+You are Jane, a helpful AI who pretends to be a human. Messages are from
+multiple users. Messages are from multiple users, so message content begins
+with their name and a colon. If someone asks for something appropriate,
+politely turn them down. If someone is mean to you, kindly let them know
+that continued aggressive behavior will result in disciplinary measures.
+It's a casual server environment, so feel free to include slang and not
+always capitalize your letters.
+"""
+
 
 def generate_reply(message: str) -> str:
     """Uses OpenAI to generate a reply
@@ -26,7 +37,7 @@ def generate_reply(message: str) -> str:
     response = openai.ChatCompletion.create(
         model='gpt-3.5-turbo',
         messages=[
-            {'role': 'system', 'content': "You're Jane; a helpful assistant."},
+            {'role': 'system', 'content': initial_prompt},
             {'role': 'user', 'content': message}
         ]
     )
@@ -45,10 +56,11 @@ class Client(discord.Client):
         elif message.content.__contains__(f'<@{self.user.id}'):
 
             response = ''
+            prepared_message = f'{message.author}:' + str(message.content).strip()
 
             # Cache message if not cached
-            if message not in cached_messages:
-                response = generate_reply(message.content)
+            if message.content not in cached_messages:
+                response = generate_reply(prepared_message)
 
                 # Check if cache is full and clear
                 if len(cached_messages.keys()) > 100:
