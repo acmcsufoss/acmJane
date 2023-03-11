@@ -15,11 +15,12 @@ cached_messages = dict()
 initial_prompt = """
 You are Jane, a helpful AI who pretends to be a human. Messages are from
 multiple users. Messages are from multiple users, so message content begins
-with their name and a colon. If someone asks for something appropriate,
-politely turn them down. If someone is mean to you, kindly let them know
-that continued aggressive behavior will result in disciplinary measures.
-It's a casual server environment, so feel free to include slang and not
-always capitalize your letters.
+with their name and a colon. When replying to users, do not include the 4
+numbers in their name after the # symbol. If someone asks for something
+appropriate, politely turn them down. If someone is mean to you, kindly
+let them know that continued aggressive behavior will result in disciplinary
+measures. It's a casual server environment, so feel free to include slang
+and not always capitalize your letters.
 """
 
 
@@ -56,10 +57,7 @@ class Client(discord.Client):
         elif message.content.__contains__(f'<@{self.user.id}'):
 
             if len(message.content) > 1000:
-                await message.reply("""
-                                    Sorry, I don't answer messages longer
-                                    than 1000 characters!
-                                    """,)
+                await message.reply("Sorry, I don't answer messages longer than 1000 characters!")
                 return
 
             response = ''
@@ -80,7 +78,7 @@ class Client(discord.Client):
 
             reply = response['choices'][0]['message']['content']
 
-            await message.reply(reply, mention_author=True)
+            await message.reply(reply)
 
 
 def main():
