@@ -12,11 +12,6 @@ openai.api_key = os.getenv("OPENAI_TOKEN")
 cached_messages = dict()
 
 
-def flush_cache(delay: int):
-    cached_messages.clear()
-    print('[LOG] Clearing cache')
-
-
 def generate_reply(message: str) -> str:
     """Uses OpenAI to generate a reply
 
@@ -53,6 +48,11 @@ class Client(discord.Client):
 
             if message not in cached_messages:
                 response = generate_reply(message.content)
+
+                if len(cached_messages.keys()) > 100:
+                    cached_messages.clear()
+                    print('[LOG] Clearing cache')
+
                 cached_messages[message] = response
             else:
                 response = cached_messages.get(message)
