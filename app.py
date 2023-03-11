@@ -61,7 +61,7 @@ class Client(discord.Client):
 
             reply = response['choices'][0]['message']['content']
 
-            await message.reply(response, mention_author=True)
+            await message.reply(reply, mention_author=True)
 
 
 def main():
