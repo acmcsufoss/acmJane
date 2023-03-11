@@ -1,5 +1,4 @@
 import os
-from discord.message import Message
 from dotenv import load_dotenv
 import discord
 import openai
@@ -11,6 +10,11 @@ openai.api_key = os.getenv("OPENAI_TOKEN")
 
 # cache map
 cached_messages = dict()
+
+
+def flush_cache(delay: int):
+    cached_messages.clear()
+    print('[LOG] Clearing cache')
 
 
 def generate_reply(message: str) -> str:
@@ -56,8 +60,13 @@ class Client(discord.Client):
             await message.reply(response, mention_author=True)
 
 
-intents = discord.Intents.default()
-intents.message_content = True
+def main():
+    intents = discord.Intents.default()
+    intents.message_content = True
 
-client = Client(intents=intents)
-client.run(f'{token}')
+    client = Client(intents=intents)
+    client.run(token)
+
+
+if __name__ == "__main__":
+    main()
