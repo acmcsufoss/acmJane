@@ -86,11 +86,11 @@ class Client(discord.Client):
             prepared_message = f'{message.author}:' + str(message.content).strip()
 
             # Store message in cache
-            channel_id = message.channel.id
-            if channel_id not in conversations:
-                conversations[channel_id] = MessageHistory(channel_id=channel_id)
-            else:
-                MessageHistory(conversations[channel_id]).append_message(prepared_message)
+            # channel_id = message.channel.id
+            # if channel_id not in conversations:
+            #     conversations[channel_id] = MessageHistory(channel_id=channel_id)
+            # else:
+            #     MessageHistory(conversations[channel_id]).append_message(prepared_message)
 
             # Cache message if not cached
             if message.content not in cached_messages:
