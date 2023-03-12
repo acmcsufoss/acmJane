@@ -8,8 +8,11 @@ load_dotenv()
 token = os.getenv("DISCORD_TOKEN")
 openai.api_key = os.getenv("OPENAI_TOKEN")
 
-# cache map
+# cache map (set of messages: openai reply)
 cached_messages = dict()
+
+# conversation map (channel ID: list of MessageHistory objects)
+conversations = dict()
 
 # initial prompt
 initial_prompt = """
@@ -46,6 +49,25 @@ def generate_reply(message: str) -> str:
     return response
 
 
+class MessageHistory():
+
+    # message: openai reply
+    messages = {}
+
+    def __init__(self, channel_id: int):
+
+        self.channel_id = str(channel_id)
+
+    def get_channel_id(self):
+        return self.channel_id
+
+    def append_message(self, message, reply):
+        self.messages[message] = reply
+
+    def get_map(self):
+        return self.messages
+
+
 class Client(discord.Client):
     async def on_ready(self: discord.Client):
         print(f'Logged in as {self.user} (ID: {self.user.id})')
@@ -62,6 +84,13 @@ class Client(discord.Client):
 
             response = ''
             prepared_message = f'{message.author}:' + str(message.content).strip()
+
+            # Store message in cache
+            channel_id = message.channel.id
+            if channel_id not in conversations:
+                conversations[channel_id] = MessageHistory(channel_id=channel_id)
+            else:
+                MessageHistory(conversations[channel_id]).append_message(prepared_message)
 
             # Cache message if not cached
             if message.content not in cached_messages:
