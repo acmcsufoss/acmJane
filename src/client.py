@@ -27,7 +27,7 @@ class Client(discord.Client):
         if should_reply(self, message):
             openai_reply = OpenAIReply(os.getenv("OPENAI_TOKEN"))
             reply = openai_reply.generate_reply(message, self)
-            await message.reply(reply)
+            await message.reply(reply, mention_author=False)
 
 
 def main():
