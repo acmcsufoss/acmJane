@@ -112,10 +112,12 @@ class Client(discord.Client):
                     await message.reply(reply)
 
                 else:
-                    # Append new value into conversations
                     reply = generate_reply(prepared_message)
+
+                    # Append new value into conversations
                     new_history = MessageHistory(message.channel.id)
                     new_history.append_message(prepared_message, reply)
+                    conversations[message.channel.id] = new_history
 
                     await message.reply(reply)
 
