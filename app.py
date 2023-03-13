@@ -71,8 +71,9 @@ class MessageHistory():
 def should_reply(self, message: discord.Message):
     message_content = message.content.strip()
 
-    # TODO: Return true if message is a reply to bot
-    # if message.reference is not None:
+    # Return true if message is a reply to bot
+    if message.reference and message.reference.cached_message:
+        return message.reference.cached_message.author.id == self.user.id
 
     return message_content.__contains__(f'<@{self.user.id}') or message_content.lower().__contains__(self.user.name.lower())
 
