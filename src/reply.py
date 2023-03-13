@@ -1,5 +1,6 @@
 import discord
 import openai
+from message_history import MessageHistory
 
 
 class OpenAIReply():
@@ -35,6 +36,22 @@ class OpenAIReply():
 
         return response
 
+    def __reply_with_memory(self, history: MessageHistory):
+
+        # Assume all messages are in same format as
+        # prepared_message in generate_reply()
+        messages = []
+        for k, v in dict(history.get_map()).items():
+            messages.append({'role': 'user', 'content': k})
+            messages.append({'role': 'system', 'content': v})
+
+        response = openai.ChatCompletion.create(
+            model='gpt-3.5-turbo',
+            messages=messages
+        )
+
+        return response
+
     def generate_reply(self, message: discord.Message, client: discord.Client) -> str:
         """Uses OpenAI to generate a reply
 
@@ -46,7 +63,7 @@ class OpenAIReply():
         """
 
         message_content = message.content.strip()
-        reply = ''
+        prepared_message = f'{message.author}:' + str(message_content)
 
         if message_content == f'<@{client.user.id}>':
             return 'pong!'
@@ -56,15 +73,17 @@ class OpenAIReply():
 
         # Pull from conversations
         if message.channel.id in self.conversations:
-            # TODO: Create new reply helper function that
-            # takes MessageHistory parameters
-            print("[LOG] Retrieving conversation context")
+            # append latest message
+            self.conversations.get(message.channel.id).append(prepared_message)
+            response = self.__reply_with_memory()
         else:
 
             # No conversation data, generate plain reply without memory
-            prepared_message = f'{message.author}:' + str(message_content)
             response = self.__reply_without_memory(prepared_message)
 
-            # TODO: Append new value into conversations
+            # Append new value into conversations
+            history = MessageHistory(message.channel.id)
+            history.append_message(prepared_message)
+            self.conversations.update({message.channel.id: history})
 
         return response['choices'][0]['message']['content']
