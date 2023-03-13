@@ -36,26 +36,33 @@ class OpenAIReply():
 
         # Append new value into conversations
         history = MessageHistory(message.channel.id)
-        history.append_message(message)
         self.conversations.update({message.channel.id: history})
 
-        return response
+        # Append latest message and reply
+        reply = response['choices'][0]['message']['content']
+        history.append_message(message, reply)
 
-    def __reply_with_memory(self, history: MessageHistory):
+        return reply
 
-        # Assume all messages are in same format as
-        # prepared_message in generate_reply()
+    def __reply_with_memory(self, history: MessageHistory, message: str):
+
         messages = []
         for k, v in dict(history.get_map()).items():
             messages.append({'role': 'user', 'content': k})
             messages.append({'role': 'system', 'content': v})
+        messages.append(message)
 
+        # Generate response
         response = openai.ChatCompletion.create(
             model='gpt-3.5-turbo',
             messages=messages
         )
 
-        return response
+        # Append latest message and reply
+        reply = response['choices'][0]['message']['content']
+        history.append_message(message, reply)
+
+        return reply
 
     def generate_reply(self, message: discord.Message, client: discord.Client) -> str:
         """Uses OpenAI to generate a reply
@@ -69,6 +76,7 @@ class OpenAIReply():
 
         message_content = message.content.strip()
         prepared_message = f'{message.author}:' + str(message_content)
+        reply = None
 
         if message_content == f'<@{client.user.id}>':
             return 'pong!'
@@ -78,13 +86,10 @@ class OpenAIReply():
 
         # Pull from conversations
         if message.channel.id in self.conversations:
-
-            # append latest message
             history = self.conversations.get(message.channel.id)
-            history.append_message(prepared_message)
-            response = self.__reply_with_memory(history)
+            reply = self.__reply_with_memory(history, prepared_message)
         else:
             # No conversation data, generate plain reply without memory
-            response = self.__reply_without_memory(prepared_message)
+            reply = self.__reply_without_memory(prepared_message)
 
-        return response['choices'][0]['message']['content']
+        return reply
