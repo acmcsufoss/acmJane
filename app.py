@@ -68,32 +68,38 @@ class MessageHistory():
         return self.messages
 
 
+def should_reply(self, message: discord.Message):
+    message_content = message.content.strip()
+
+    # TODO: Return true if message is a reply to bot
+    # if message.reference is not None:
+
+    return message_content.__contains__(f'<@{self.user.id}') or message_content.lower().__contains__(self.user.name.lower())
+
+
 class Client(discord.Client):
     async def on_ready(self: discord.Client):
         print(f'Logged in as {self.user} (ID: {self.user.id})')
         print('----------------------------------------------')
 
     async def on_message(self, message: discord.Message):
-        if message.content == f'<@{self.user.id}>':
-            await message.reply('pong!', mention_author=True)
-        elif message.content.__contains__(f'<@{self.user.id}'):
+        message_content = message.content.strip()
 
-            if len(message.content) > 1000:
+        if message_content == f'<@{self.user.id}>':
+            await message.reply('pong!', mention_author=True)
+        elif should_reply(self, message):
+
+            if len(message_content) > 1000:
                 await message.reply("Sorry, I don't answer messages longer than 1000 characters!")
                 return
 
             response = ''
-            prepared_message = f'{message.author}:' + str(message.content).strip()
+            prepared_message = f'{message.author}:' + str(message_content)
 
-            # Store message in cache
-            # channel_id = message.channel.id
-            # if channel_id not in conversations:
-            #     conversations[channel_id] = MessageHistory(channel_id=channel_id)
-            # else:
-            #     MessageHistory(conversations[channel_id]).append_message(prepared_message)
+            # TODO: Cache conversation
 
             # Cache message if not cached
-            if message.content not in cached_messages:
+            if message_content not in cached_messages:
                 response = generate_reply(prepared_message)
 
                 # Check if cache is full and clear
