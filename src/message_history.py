@@ -1,3 +1,6 @@
+__MAX_HISTORY = 5
+
+
 class MessageHistory():
 
     # map of messages: replies
@@ -12,7 +15,7 @@ class MessageHistory():
     def append_message(self, message: str, reply: str):
 
         # check size
-        while len(self.messages) >= 5:
+        while len(self.messages) >= __MAX_HISTORY:
             first_key = next(iter(self.messages))
             self.messages.pop(first_key)
 
