@@ -1,5 +1,5 @@
 import os
-from collections import deque
+from message_history import MessageHistory
 from dotenv import load_dotenv
 import discord
 import openai
@@ -28,6 +28,19 @@ your letters.
 """
 
 
+def generate_reply_with_memory(message: str, history: MessageHistory) -> str:
+    """Uses OpenAI to generate a reply
+
+    Keyword arguments:
+        message -- The message to be replied token
+        history -- Message history of channel
+
+    Returns:
+        OpenAI chat model response
+    """
+    return message
+
+
 def generate_reply(message: str) -> str:
     """Uses OpenAI to generate a reply
 
@@ -48,29 +61,6 @@ def generate_reply(message: str) -> str:
     )
 
     return response
-
-
-class MessageHistory():
-
-    # queue of messages: replies
-    messages = deque()
-
-    def __init__(self, channel_id: int):
-        self.channel_id = str(channel_id)
-
-    def get_channel_id(self) -> str:
-        return self.channel_id
-
-    def append_message(self, message: str, reply: str):
-
-        # check size
-        if len(self.messages) >= 5:
-            self.messages.popleft()
-
-        self.messages.append({message: reply})
-
-    def get_queue(self) -> deque:
-        return self.messages
 
 
 def should_reply(self, message: discord.Message) -> bool:
@@ -102,37 +92,32 @@ class Client(discord.Client):
             response = ''
             prepared_message = f'{message.author}:' + str(message_content)
 
-            # Cache message if not cached
-            if message_content not in cached_messages:
-                response = generate_reply(prepared_message)
-
-                # Check if cache is full and clear
-                if len(cached_messages.keys()) > 100:
-                    cached_messages.clear()
-                    print('[LOG] Clearing cache')
-
-                cached_messages[message] = response
+            # If message is cached
+            if message_content in cached_messages:
+                response = cached_messages.get(message_content)
+                reply = response['choices'][0]['message']['content']
+                await message.reply(reply)
+                return
             else:
 
-            # TODO: Cache conversation
-            # if message.channel.id in conversations:
-            #     # Call generate_reply() with conversation map
+                # Pull from conversations
+                if message.channel.id in conversations:
+                    # Call generate_reply() with conversation map
+                    history = conversations.get(message.channel.id)
+                    reply = generate_reply_with_memory(prepared_message, history)
 
-                response = cached_messages.get(message)
+                    # Append to conversation
+                    history.append_message(prepared_message, reply)
 
-            reply = response['choices'][0]['message']['content']
+                    await message.reply(reply)
 
-            # TODO: Cache conversation
-            if message.channel.id in conversations:
-                # Append to conversation
-                history = conversations.get(message.channel.id)
-                history.append_message(prepared_message, reply)
-            # else:
-            #     # Append new value into conversations
-            #     new_history = MessageHistory(message.channel.id)
-            #     new_history.append_message(prepared_message, reply)
+                else:
+                    # Append new value into conversations
+                    reply = generate_reply(prepared_message)
+                    new_history = MessageHistory(message.channel.id)
+                    new_history.append_message(prepared_message, reply)
 
-            await message.reply(reply)
+                    await message.reply(reply)
 
 
 def main():
