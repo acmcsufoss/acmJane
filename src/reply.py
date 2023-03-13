@@ -34,6 +34,11 @@ class OpenAIReply():
             ]
         )
 
+        # Append new value into conversations
+        history = MessageHistory(message.channel.id)
+        history.append_message(message)
+        self.conversations.update({message.channel.id: history})
+
         return response
 
     def __reply_with_memory(self, history: MessageHistory):
@@ -73,17 +78,12 @@ class OpenAIReply():
 
         # Pull from conversations
         if message.channel.id in self.conversations:
+
             # append latest message
-            self.conversations.get(message.channel.id).append(prepared_message)
+            self.conversations.get(message.channel.id).append_message(prepared_message)
             response = self.__reply_with_memory()
         else:
-
             # No conversation data, generate plain reply without memory
             response = self.__reply_without_memory(prepared_message)
-
-            # Append new value into conversations
-            history = MessageHistory(message.channel.id)
-            history.append_message(prepared_message)
-            self.conversations.update({message.channel.id: history})
 
         return response['choices'][0]['message']['content']
