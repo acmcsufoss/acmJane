@@ -103,6 +103,10 @@ class Client(discord.Client):
             prepared_message = f'{message.author}:' + str(message_content)
 
             # TODO: Cache conversation
+            # if message.channel.id in conversations:
+            #     # Call generate_reply() with conversation map
+            # else:
+            #     # Append new value into conversations
 
             # Cache message if not cached
             if message_content not in cached_messages:
