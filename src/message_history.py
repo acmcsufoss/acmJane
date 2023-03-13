@@ -1,10 +1,7 @@
-from collections import deque
-
-
 class MessageHistory():
 
-    # queue of messages: replies
-    messages = deque()
+    # map of messages: replies
+    messages = {}
 
     def __init__(self, channel_id: int):
         self.channel_id = str(channel_id)
@@ -15,10 +12,11 @@ class MessageHistory():
     def append_message(self, message: str, reply: str):
 
         # check size
-        if len(self.messages) >= 5:
-            self.messages.popleft()
+        while len(self.messages) >= 5:
+            first_key = next(iter(self.messages))
+            self.messages.pop(first_key)
 
         self.messages.append({message: reply})
 
-    def get_queue(self) -> deque:
+    def get_map(self) -> dict:
         return self.messages
