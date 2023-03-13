@@ -63,8 +63,8 @@ class OpenAIReply():
 
             # No conversation data, generate plain reply without memory
             prepared_message = f'{message.author}:' + str(message_content)
-            reply = self.__reply_without_memory(prepared_message)
+            response = self.__reply_without_memory(prepared_message)
 
             # TODO: Append new value into conversations
 
-        return reply
+        return response['choices'][0]['message']['content']
