@@ -80,8 +80,9 @@ class OpenAIReply():
         if message.channel.id in self.conversations:
 
             # append latest message
-            self.conversations.get(message.channel.id).append_message(prepared_message)
-            response = self.__reply_with_memory()
+            history = self.conversations.get(message.channel.id)
+            history.append_message(prepared_message)
+            response = self.__reply_with_memory(history)
         else:
             # No conversation data, generate plain reply without memory
             response = self.__reply_without_memory(prepared_message)
