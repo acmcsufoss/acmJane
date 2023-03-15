@@ -61,7 +61,7 @@ class Client(discord.Client):
             prepared_message = f'{message.author}: {str(message.content).strip()}'
             self.tokens_per_day[date.today()] = count_tokens(prepared_message) + self.tokens_per_day.get(date.today(), 0)
             
-            if at_limit(self.length_per_day):   
+            if at_limit(self.tokens_per_day):   
                 await message.reply("I'm currently sleeping, but check back later!", mention_author=False)
             
             # reply
