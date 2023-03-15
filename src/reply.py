@@ -23,7 +23,7 @@ class OpenAIReply():
     your letters.
     """
 
-    def __reply_without_memory(self, message: str) -> str:
+    def __reply_without_memory(self, message: str, channel_id: int) -> str:
 
         # Generate response
         response = openai.ChatCompletion.create(
@@ -35,8 +35,8 @@ class OpenAIReply():
         )
 
         # Append new value into conversations
-        history = MessageHistory(message.channel.id)
-        self.conversations.update({message.channel.id: history})
+        history = MessageHistory(channel_id)
+        self.conversations.update({channel_id: history})
 
         # Append latest message and reply
         reply = response['choices'][0]['message']['content']
@@ -45,12 +45,11 @@ class OpenAIReply():
         return reply
 
     def __reply_with_memory(self, history: MessageHistory, message: str):
-
-        messages = []
+        messages = [{'role': 'system', 'content': self.initial_prompt}]
         for k, v in dict(history.get_map()).items():
             messages.append({'role': 'user', 'content': k})
             messages.append({'role': 'system', 'content': v})
-        messages.append(message)
+        messages.append({'role': 'user', 'content': message})
 
         # Generate response
         response = openai.ChatCompletion.create(
@@ -90,6 +89,6 @@ class OpenAIReply():
             reply = self.__reply_with_memory(history, prepared_message)
         else:
             # No conversation data, generate plain reply without memory
-            reply = self.__reply_without_memory(prepared_message)
+            reply = self.__reply_without_memory(prepared_message, message.channel.id)
 
         return reply
