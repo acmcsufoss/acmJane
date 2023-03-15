@@ -1,12 +1,25 @@
 import os
 from reply import OpenAIReply
 from dotenv import load_dotenv
+from datetime import date
+from transformers import GPT2TokenizerFast
 import discord
 
 # load from .env
 load_dotenv()
 token = os.getenv("DISCORD_TOKEN")
 
+def count_tokens(text: str) -> int:
+    """String tokenizer
+    
+    Keyword arguments:
+    text -- Text [string]
+    Return: Number of tokens [int]
+    """
+    
+    tokenizer = GPT2TokenizerFast.from_pretrained("gpt2")
+    tokenized_text = tokenizer.tokenize(text)
+    return len(tokenized_text)
 
 def should_reply(client: discord.Client, message: discord.Message) -> bool:
     message_content = message.content.strip()
@@ -17,16 +30,44 @@ def should_reply(client: discord.Client, message: discord.Message) -> bool:
 
     return message_content.__contains__(f'<@{client.user.id}') or message_content.lower().__contains__(client.user.name.lower())
 
+# TODO: Add token value of all messages sent in API call
+def at_limit(d: dict) -> bool:
+    """Checks daily character limit
+    
+    Keyword arguments:
+    d -- Dictionary of token count per day
+    Return: Boolean value of current date being over limit
+    """
+
+    monthly_usd_limit = 5
+    daily_usd_limit = monthly_usd_limit / 30
+    cost_per_1k_token = 0.002
+    token_cost_today = (d.get(date.today(), 0) / 1000) * cost_per_1k_token
+    return token_cost_today >= daily_usd_limit
+
 
 class Client(discord.Client):
+    
+    tokens_per_day = dict()
+    
     async def on_ready(self: discord.Client):
         print(f'Logged in as {self.user} (ID: {self.user.id})')
         print('----------------------------------------------')
 
     async def on_message(self, message: discord.Message):
         if should_reply(self, message):
+            
+            # prepare and add to limit
+            prepared_message = f'{message.author}: {str(message.content).strip()}'
+            self.tokens_per_day[date.today()] = count_tokens(prepared_message) + self.tokens_per_day.get(date.today(), 0)
+            
+            if at_limit(self.length_per_day):   
+                await message.reply("I'm currently sleeping, but check back later!", mention_author=False)
+            
+            # reply
             openai_reply = OpenAIReply(os.getenv("OPENAI_TOKEN"))
             reply = openai_reply.generate_reply(message, self)
+            
             await message.reply(reply, mention_author=False)
 
 
