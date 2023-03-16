@@ -21,6 +21,14 @@ def count_tokens(text: str) -> int:
     return len(tokenizer.tokenize(text))
 
 def should_reply(client: discord.Client, message: discord.Message) -> bool:
+    """Decides if Client should reply to a message
+    
+    Keyword arguments:
+    client -- Discord Client
+    message -- Discord message
+    Return: Boolean if Client should reply
+    """
+
     message_content = message.content.strip()
 
     # Return true if message is a reply to bot
