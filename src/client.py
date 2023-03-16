@@ -9,7 +9,7 @@ import discord
 load_dotenv()
 token = os.getenv("DISCORD_TOKEN")
 
-def count_tokens(text: str) -> int:
+async def count_tokens(text: str) -> int:
     """String tokenizer
     
     Keyword arguments:
@@ -59,14 +59,14 @@ class Client(discord.Client):
             
             # prepare and add to limit
             prepared_message = f'{message.author}: {str(message.content).strip()}'
-            self.tokens_per_day[date.today()] = count_tokens(prepared_message) + self.tokens_per_day.get(date.today(), 0)
+            self.tokens_per_day[date.today()] = await count_tokens(prepared_message) + self.tokens_per_day.get(date.today(), 0)
             
             if at_limit(self.tokens_per_day):   
                 await message.reply("I'm currently sleeping, but check back later!", mention_author=False)
             
             # reply
             openai_reply = OpenAIReply(os.getenv("OPENAI_TOKEN"))
-            reply = openai_reply.generate_reply(message, self)
+            reply = await openai_reply.generate_reply(message, self)
             
             await message.reply(reply, mention_author=False)
 
