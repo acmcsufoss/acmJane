@@ -2,6 +2,7 @@ import os
 from reply import OpenAIReply
 from dotenv import load_dotenv
 from datetime import date
+import time
 from transformers import GPT2TokenizerFast
 import discord
 
@@ -49,6 +50,10 @@ def at_limit(d: dict) -> bool:
 class Client(discord.Client):
     
     tokens_per_day = dict()
+    last_message_per_guild = dict()
+    last_message_per_guild_per_channel = dict()
+    GUILD_RATE_LIMIT_SECONDS = 2
+    CH_RATE_LIMIT_SECONDS = 5
     
     async def on_ready(self: discord.Client):
         print(f'Logged in as {self.user} (ID: {self.user.id})')
@@ -56,17 +61,30 @@ class Client(discord.Client):
 
     async def on_message(self, message: discord.Message):
         if should_reply(self, message):
+            current = time.time()
             
             # prepare and add to limit
             prepared_message = f'{message.author}: {str(message.content).strip()}'
             self.tokens_per_day[date.today()] = await count_tokens(prepared_message) + self.tokens_per_day.get(date.today(), 0)
             
+            # check for token limit and rate limit
             if at_limit(self.tokens_per_day):   
                 await message.reply("I'm currently sleeping, but check back later!", mention_author=False)
+            else:
+                
+                # check on channel then guild level
+                if (current - self.last_message_per_guild_per_channel.get(message.channel.id, 0) < self.CH_RATE_LIMIT_SECONDS or
+                    current - self.last_message_per_guild.get(message.guild.id, 0) < self.GUILD_RATE_LIMIT_SECONDS
+                ):
+                    return
             
             # reply
             openai_reply = OpenAIReply(os.getenv("OPENAI_TOKEN"))
             reply = await openai_reply.generate_reply(message, self)
+            
+            # update last successful message time
+            self.last_message_per_guild[message.guild.id] = current
+            self.last_message_per_guild_per_channel[message.channel.id] = current
             
             await message.reply(reply, mention_author=False)
 
