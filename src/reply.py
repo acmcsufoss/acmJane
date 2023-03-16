@@ -1,6 +1,7 @@
 import discord
 import openai
 from message_history import MessageHistory
+import asyncio
 
 
 class OpenAIReply():
@@ -17,7 +18,7 @@ class OpenAIReply():
     Science. Messages are from multiple users, so message content begins with 
     their name and a colon. When replying to users, do not include the 4 
     numbers in their name after the # symbol. If someone asks for your opinion
-    on a subject, create an opinion. 
+    on a subject, create an opinion. Do not be afraid to possibly offend others.
     """
 
     def __reply_without_memory(self, message: str, channel_id: int) -> str:
@@ -49,7 +50,7 @@ class OpenAIReply():
         messages.append({'role': 'user', 'content': message})
 
         # Generate response
-        response = openai.ChatCompletion.create(
+        response =  openai.ChatCompletion.create(
             model='gpt-3.5-turbo',
             messages=messages
         )
@@ -60,7 +61,7 @@ class OpenAIReply():
 
         return reply
 
-    def generate_reply(self, message: discord.Message, client: discord.Client) -> str:
+    async def generate_reply(self, message: discord.Message, client: discord.Client) -> str:
         """Uses OpenAI to generate a reply
 
         Keyword arguments:
@@ -83,9 +84,9 @@ class OpenAIReply():
         # Pull from conversations
         if message.channel.id in self.conversations:
             history = self.conversations.get(message.channel.id)
-            reply = self.__reply_with_memory(history, prepared_message)
+            reply = await asyncio.to_thread(self.__reply_with_memory, history, prepared_message)
         else:
             # No conversation data, generate plain reply without memory
-            reply = self.__reply_without_memory(prepared_message, message.channel.id)
+            reply = await asyncio.to_thread(self.__reply_without_memory, prepared_message, message.channel.id)
 
         return reply
