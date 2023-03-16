@@ -2,6 +2,7 @@ import discord
 import openai
 from message_history import MessageHistory
 import asyncio
+from datetime import datetime
 
 
 class OpenAIReply():
@@ -80,6 +81,9 @@ class OpenAIReply():
 
         if len(message_content) > 1000:
             return "Sorry, I don't answer messages longer than 1000 characters!"
+        
+        now = datetime.now()
+        current = (now.hour * 60 * 60) + (now.minute * 60) + now.second
 
         # Pull from conversations
         if message.channel.id in self.conversations:
@@ -88,5 +92,9 @@ class OpenAIReply():
         else:
             # No conversation data, generate plain reply without memory
             reply = await asyncio.to_thread(self.__reply_without_memory, prepared_message, message.channel.id)
+        
+        now = datetime.now()
+        after = (now.hour * 60 * 60) + (now.minute * 60) + now.second
+        print(f'[LOG] time elapsed: {after - current}')
 
         return reply
