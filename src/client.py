@@ -2,7 +2,6 @@ import os
 from reply import OpenAIReply
 from dotenv import load_dotenv
 from datetime import date, datetime
-import time
 from transformers import GPT2TokenizerFast
 import discord
 
@@ -83,10 +82,15 @@ class Client(discord.Client):
             self.last_message_per_guild_per_channel[message.channel.id] = current
             
             # reply
-            openai_reply = OpenAIReply(os.getenv("OPENAI_TOKEN"))
-            reply = await openai_reply.generate_reply(message, self)
+            try:
+                openai_reply = OpenAIReply(os.getenv("OPENAI_TOKEN"))
+                reply = await openai_reply.generate_reply(message, self)
             
-            await message.reply(reply, mention_author=False)
+                await message.reply(reply, mention_author=False)
+            except Exception as e:
+                print(e)
+                error = "Uh oh, looks like something went wrong, try again later!"
+                await message.reply(error, mention_author=False)
 
 
 def main():
