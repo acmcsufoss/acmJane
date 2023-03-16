@@ -53,7 +53,7 @@ class Client(discord.Client):
     last_message_per_guild = dict()
     last_message_per_guild_per_channel = dict()
     GUILD_RATE_LIMIT_SECONDS = 2
-    CH_RATE_LIMIT_SECONDS = 5
+    CH_RATE_LIMIT_SECONDS = 4
     
     async def on_ready(self: discord.Client):
         print(f'Logged in as {self.user} (ID: {self.user.id})')
