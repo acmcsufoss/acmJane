@@ -1,7 +1,7 @@
 import os
 from reply import OpenAIReply
 from dotenv import load_dotenv
-from datetime import date
+from datetime import date, datetime
 import time
 from transformers import GPT2TokenizerFast
 import discord
@@ -10,7 +10,7 @@ import discord
 load_dotenv()
 token = os.getenv("DISCORD_TOKEN")
 
-async def count_tokens(text: str) -> int:
+def count_tokens(text: str) -> int:
     """String tokenizer
     
     Keyword arguments:
@@ -19,8 +19,7 @@ async def count_tokens(text: str) -> int:
     """
     
     tokenizer = GPT2TokenizerFast.from_pretrained("gpt2")
-    tokenized_text = tokenizer.tokenize(text)
-    return len(tokenized_text)
+    return len(tokenizer.tokenize(text))
 
 def should_reply(client: discord.Client, message: discord.Message) -> bool:
     message_content = message.content.strip()
@@ -61,30 +60,31 @@ class Client(discord.Client):
 
     async def on_message(self, message: discord.Message):
         if should_reply(self, message):
-            current = time.time()
+            now = datetime.now()
+            current = (now.hour * 60 * 60) + (now.minute * 60) + now.second
             
             # prepare and add to limit
             prepared_message = f'{message.author}: {str(message.content).strip()}'
-            self.tokens_per_day[date.today()] = await count_tokens(prepared_message) + self.tokens_per_day.get(date.today(), 0)
+            self.tokens_per_day[date.today()] = count_tokens(prepared_message) + self.tokens_per_day.get(date.today(), 0)
             
             # check for token limit and rate limit
             if at_limit(self.tokens_per_day):   
                 await message.reply("I'm currently sleeping, but check back later!", mention_author=False)
             else:
-                
                 # check on channel then guild level
-                if (current - self.last_message_per_guild_per_channel.get(message.channel.id, 0) < self.CH_RATE_LIMIT_SECONDS or
-                    current - self.last_message_per_guild.get(message.guild.id, 0) < self.GUILD_RATE_LIMIT_SECONDS
-                ):
+                ch_diff = current - self.last_message_per_guild_per_channel.get(message.channel.id, 0)
+                guild_diff = current -self.last_message_per_guild.get(message.channel.id, 0)
+                
+                if message.guild.id in self.last_message_per_guild and (ch_diff < self.CH_RATE_LIMIT_SECONDS or guild_diff < self.GUILD_RATE_LIMIT_SECONDS):
                     return
+            
+            # update last message time
+            self.last_message_per_guild[message.guild.id] = current
+            self.last_message_per_guild_per_channel[message.channel.id] = current
             
             # reply
             openai_reply = OpenAIReply(os.getenv("OPENAI_TOKEN"))
             reply = await openai_reply.generate_reply(message, self)
-            
-            # update last successful message time
-            self.last_message_per_guild[message.guild.id] = current
-            self.last_message_per_guild_per_channel[message.channel.id] = current
             
             await message.reply(reply, mention_author=False)
 
