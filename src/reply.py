@@ -51,7 +51,7 @@ class OpenAIReply():
         messages.append({'role': 'user', 'content': message})
 
         # Generate response
-        response =  openai.ChatCompletion.create(
+        response = openai.ChatCompletion.create(
             model='gpt-3.5-turbo',
             messages=messages
         )
@@ -81,7 +81,7 @@ class OpenAIReply():
 
         if len(message_content) > 1000:
             return "Sorry, I don't answer messages longer than 1000 characters!"
-        
+
         now = datetime.now()
         current = (now.hour * 60 * 60) + (now.minute * 60) + now.second
 
@@ -92,7 +92,7 @@ class OpenAIReply():
         else:
             # No conversation data, generate plain reply without memory
             reply = await asyncio.to_thread(self.__reply_without_memory, prepared_message, message.channel.id)
-        
+
         now = datetime.now()
         after = (now.hour * 60 * 60) + (now.minute * 60) + now.second
         print(f'[LOG] time elapsed: {after - current}')
