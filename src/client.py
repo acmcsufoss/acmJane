@@ -41,7 +41,9 @@ def should_reply(client: discord.Client, message: discord.Message) -> bool:
     if message.reference and message.reference.cached_message:
         return message.reference.cached_message.author.id == client.user.id
 
-    return message_content.__contains__(f'<@{client.user.id}') or message_content.lower().__contains__(client.user.name.lower())
+    return (message_content.__contains__(f'<@{client.user.id}') or
+            message_content.__contains__(client.user.display_name.lower) or
+            message_content.lower().__contains__(client.user.name.lower()))
 
 # TODO: Add token value of all messages sent in API call
 
