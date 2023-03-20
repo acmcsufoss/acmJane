@@ -33,6 +33,10 @@ def should_reply(client: discord.Client, message: discord.Message) -> bool:
 
     message_content = message.content.strip()
 
+    # Check permissions
+    if not message.channel.permissions_for(message.guild.me).send_messages:
+        return False
+
     # Return true if message is a reply to bot
     if message.reference and message.reference.cached_message:
         return message.reference.cached_message.author.id == client.user.id
