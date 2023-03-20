@@ -48,7 +48,7 @@ class OpenAIReply():
         messages = [{'role': 'system', 'content': self.initial_prompt}]
         for k, v in dict(history.get_map()).items():
             messages.append({'role': 'user', 'content': k})
-            messages.append({'role': 'system', 'content': v})
+            messages.append({'role': 'assistant', 'content': v})
         messages.append({'role': 'user', 'content': message})
 
         # Generate response
