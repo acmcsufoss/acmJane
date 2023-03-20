@@ -99,7 +99,8 @@ class Client(discord.Client):
 
             # reply
             try:
-                openai_reply = OpenAIReply(os.getenv("OPENAI_TOKEN"))
+                openai_reply = OpenAIReply(
+                    os.getenv("OPENAI_TOKEN"), self.user)
                 reply = await openai_reply.generate_reply(message, self)
 
                 await message.reply(reply, mention_author=False)
