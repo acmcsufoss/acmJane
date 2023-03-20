@@ -2,7 +2,7 @@ import os
 from reply import OpenAIReply
 from dotenv import load_dotenv
 from datetime import date, datetime
-from transformers import GPT2TokenizerFast
+import tiktoken
 import discord
 
 # load from .env
@@ -18,8 +18,8 @@ def count_tokens(text: str) -> int:
     Return: Number of tokens [int]
     """
 
-    tokenizer = GPT2TokenizerFast.from_pretrained("gpt2")
-    return len(tokenizer.tokenize(text))
+    encoding = tiktoken.encoding_for_model("gpt-3.5-turbo")
+    return len(encoding.encode(text))
 
 
 def should_reply(client: discord.Client, message: discord.Message) -> bool:
