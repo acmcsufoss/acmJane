@@ -37,12 +37,7 @@ def should_reply(client: discord.Client, message: discord.Message) -> bool:
     if not message.channel.permissions_for(message.guild.me).send_messages:
         return False
 
-    # Return true if message is a reply to bot
-    if message.reference and message.reference.cached_message:
-        if message.reference.cached_message.author.id == client.user.id:
-            return True
-
-    return ((f'<@{client.user.id}') in message_content)
+    return client.user.mentioned_in(message)
 
 # TODO: Add token value of all messages sent in API call
 
