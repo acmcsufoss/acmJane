@@ -41,9 +41,7 @@ def should_reply(client: discord.Client, message: discord.Message) -> bool:
     if message.reference and message.reference.cached_message:
         return message.reference.cached_message.author.id == client.user.id
 
-    return ((f'<@{client.user.id}') not in message_content or
-            client.user.display_name.lower not in message_content or
-            (client.user.name.lower() not in message_content.lower()))
+    return ((f'<@{client.user.id}') in message_content)
 
 # TODO: Add token value of all messages sent in API call
 
@@ -108,6 +106,9 @@ class Client(discord.Client):
                 openai_reply = OpenAIReply(
                     os.getenv("OPENAI_TOKEN"), self.user.display_name)
                 reply = await openai_reply.generate_reply(message, self)
+
+                if reply.startswith(f'{self.user.display_name}: '):
+                    reply = reply.split(f'{self.user.display_name}: ')[1]
 
                 await message.reply(reply, mention_author=False)
             except Exception as e:
