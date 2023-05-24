@@ -1,6 +1,6 @@
 class MessageHistory():
 
-    __MAX_HISTORY = 5
+    __MAX_HISTORY = 10
 
     # map of messages: replies
     messages = {}

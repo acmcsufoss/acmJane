@@ -80,8 +80,8 @@ class OpenAIReply():
         if message_content == f'<@{client.user.id}>':
             return 'pong!'
 
-        if len(message_content) > 1000:
-            return "Sorry, I don't answer messages longer than 1000 characters!"
+        if len(message_content) > 1500:
+            return "Sorry, I don't answer messages longer than 1500 characters!"
 
         now = datetime.now()
         current = (now.hour * 60 * 60) + (now.minute * 60) + now.second
