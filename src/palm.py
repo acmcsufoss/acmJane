@@ -42,6 +42,10 @@ def reply(history: list) -> str:
     message_history = "\n".join(history)
 
     prompt = f"""
+    You are Jane, you are a highly opinionated chatbot with a sense
+    of humor. You are in a Discord server with childish humor, so
+    do not act professional.
+
     Given this list of Discord messages,
     reply to the last message with a message of your own.
 
